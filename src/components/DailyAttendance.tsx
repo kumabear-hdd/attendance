@@ -217,6 +217,46 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({
     return { hadir, sakit, izin, alpa, total, rate };
   }, [scopedStudents, attendanceState]);
 
+  // Helper to commit a single student's record immediately to server & multi-device sync
+  const saveStudentRecord = (
+    studentId: string,
+    status: AttendanceStatus,
+    note?: string,
+    extra?: {
+      attachmentType?: 'skd' | LeaveEvidenceType;
+      attachmentData?: string;
+      attachmentName?: string;
+      leaveType?: 'acara' | 'mendadak';
+    }
+  ) => {
+    const student = students.find((std) => std.id === studentId);
+    if (!student) return;
+
+    const currentItem = attendanceState[studentId];
+    const finalNote = note !== undefined ? note : (currentItem?.note || '');
+    const finalAttachmentType = extra?.attachmentType ?? currentItem?.attachmentType;
+    const finalAttachmentData = extra?.attachmentData ?? currentItem?.attachmentData;
+    const finalAttachmentName = extra?.attachmentName ?? currentItem?.attachmentName;
+    const finalLeaveType = extra?.leaveType ?? currentItem?.leaveType;
+
+    const record: AttendanceRecord = {
+      id: `rec_${studentId}_${currentDate}`,
+      studentId,
+      classId: student.classId,
+      date: currentDate,
+      status,
+      note: finalNote ? finalNote.trim() : undefined,
+      recordedAt: new Date().toISOString(),
+      attachmentType: finalAttachmentType,
+      attachmentData: finalAttachmentData,
+      attachmentName: finalAttachmentName,
+      leaveType: finalLeaveType,
+      hasSKD: status === 'Sakit' && Boolean(finalAttachmentData),
+    };
+
+    onSaveRecords([record]);
+  };
+
   // Handlers
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceState((prev) => {
@@ -226,10 +266,12 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({
         [studentId]: {
           ...current,
           status,
-          // If switching to Sakit or Izin, auto suggest opening modal if needed
         },
       };
     });
+
+    // Auto-save immediately to records and sync across all devices
+    saveStudentRecord(studentId, status);
 
     if (status === 'Sakit' || status === 'Izin') {
       const s = students.find((std) => std.id === studentId);
@@ -266,6 +308,9 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({
         leaveType: evidenceData.leaveType,
       },
     }));
+
+    // Auto-save immediately with evidence to server
+    saveStudentRecord(modalStudent.id, modalStatus, evidenceData.note, evidenceData);
   };
 
   const handleNoteChange = (studentId: string, note: string) => {
@@ -278,17 +323,38 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({
     }));
   };
 
+  const handleNoteBlur = (studentId: string) => {
+    const item = attendanceState[studentId];
+    if (item) {
+      saveStudentRecord(studentId, item.status, item.note);
+    }
+  };
+
   const handleMarkAllHadir = () => {
-    setAttendanceState((prev) => {
-      const next = { ...prev };
-      scopedStudents.forEach((s) => {
-        next[s.id] = {
-          status: 'Hadir',
-          note: '',
-        };
+    const next: Record<string, WorkingItem> = {};
+    const newRecords: AttendanceRecord[] = [];
+    const timestamp = new Date().toISOString();
+
+    scopedStudents.forEach((s) => {
+      next[s.id] = {
+        status: 'Hadir',
+        note: '',
+      };
+      newRecords.push({
+        id: `rec_${s.id}_${currentDate}`,
+        studentId: s.id,
+        classId: s.classId,
+        date: currentDate,
+        status: 'Hadir',
+        note: undefined,
+        recordedAt: timestamp,
       });
-      return next;
     });
+
+    setAttendanceState((prev) => ({ ...prev, ...next }));
+    onSaveRecords(newRecords);
+    setShowSaveToast(true);
+    setTimeout(() => setShowSaveToast(false), 3000);
   };
 
   const handleReset = () => {
@@ -846,6 +912,7 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({
                               type="text"
                               value={item.note}
                               onChange={(e) => handleNoteChange(student.id, e.target.value)}
+                              onBlur={() => handleNoteBlur(student.id)}
                               placeholder="Catatan opsional..."
                               className="w-full text-xs px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                             />
@@ -863,11 +930,18 @@ export const DailyAttendance: React.FC<DailyAttendanceProps> = ({
         {/* Footer info & Bottom Save */}
         {scopedStudents.length > 0 && (
           <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-slate-400" />
-              <span>
-                Menampilkan {filteredStudents.length} dari {scopedStudents.length} siswa ({scopeLabel}).
-              </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-slate-400" />
+                <span>
+                  Menampilkan {filteredStudents.length} dari {scopedStudents.length} siswa ({scopeLabel}).
+                </span>
+              </div>
+              <span className="hidden md:inline text-slate-300">|</span>
+              <div className="flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Otomatis Tersimpan & Tersinkron Multi-Device</span>
+              </div>
             </div>
 
             <button

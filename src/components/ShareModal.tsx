@@ -17,6 +17,7 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   roomId: string;
+  currentDate: string;
   onChangeRoom: (newRoomId: string) => void;
   syncStatus: 'synced' | 'syncing' | 'offline';
   lastSyncTime: Date | null;
@@ -28,6 +29,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   isOpen,
   onClose,
   roomId,
+  currentDate,
   onChangeRoom,
   syncStatus,
   lastSyncTime,
@@ -38,12 +40,12 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const [customRoomInput, setCustomRoomInput] = useState(roomId);
   const [isEditingRoom, setIsEditingRoom] = useState(false);
 
-  // Generate the full shareable URL
+  // Generate the full shareable URL with room and date
   const getShareUrl = () => {
     if (typeof window === 'undefined') return '';
     const origin = window.location.origin;
     const path = window.location.pathname;
-    return `${origin}${path}?room=${encodeURIComponent(roomId)}`;
+    return `${origin}${path}?room=${encodeURIComponent(roomId)}&date=${encodeURIComponent(currentDate)}`;
   };
 
   const shareUrl = getShareUrl();

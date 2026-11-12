@@ -23,17 +23,17 @@ import {
   StorageData,
 } from './data/initialData';
 import { formatDateToISO } from './utils/attendance';
-import { BookOpen, ShieldCheck, Wifi } from 'lucide-react';
+import { BookOpen, RefreshCw, ShieldCheck, Wifi } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('presensi');
   const [data, setData] = useState<StorageData>(() => loadStoredData());
   const [selectedScope, setSelectedScope] = useState<string>('all');
-  const [currentDate, setCurrentDate] = useState<string>(() => formatDateToISO(new Date()));
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // Room / Multi-Device Sync state
+  // Initialize room from URL query or default to 'mustaqbal'
   const [roomId, setRoomId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -43,14 +43,34 @@ export default function App() {
     return 'mustaqbal';
   });
 
+  // Initialize currentDate from URL query or default to today's date
+  const [currentDate, setCurrentDate] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const d = params.get('date');
+      if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    }
+    return formatDateToISO(new Date());
+  });
+
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('synced');
-  const [serverVersion, setServerVersion] = useState<number>(1);
+  const [serverVersion, setServerVersion] = useState<number>(0);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
-  const serverVersionRef = useRef<number>(1);
+  const serverVersionRef = useRef<number>(0);
   const isSavingRef = useRef<boolean>(false);
   const dataRef = useRef<StorageData>(data);
   dataRef.current = data;
+
+  // Always keep browser URL in sync with room and date
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', roomId);
+      url.searchParams.set('date', currentDate);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [roomId, currentDate]);
 
   // Sync state to local storage whenever data changes
   useEffect(() => {
@@ -85,7 +105,7 @@ export default function App() {
       } finally {
         setTimeout(() => {
           isSavingRef.current = false;
-        }, 500);
+        }, 300);
       }
     },
     [roomId]
@@ -113,6 +133,8 @@ export default function App() {
       } catch (err) {
         console.warn('[Sync] Failed to fetch room data from server, using local cache:', err);
         setSyncStatus('offline');
+      } finally {
+        setIsInitialLoading(false);
       }
     },
     []
@@ -158,10 +180,10 @@ export default function App() {
       }
     };
 
-    // Poll every 2.5 seconds
-    const interval = setInterval(checkSync, 2500);
+    // Poll every 2 seconds
+    const interval = setInterval(checkSync, 2000);
 
-    // Also sync on window focus / visibility change (e.g., user returns to tab on phone)
+    // Also sync on window focus / visibility change
     const handleFocus = () => {
       checkSync();
     };
@@ -199,9 +221,9 @@ export default function App() {
   // Save new / updated records from daily attendance
   const handleSaveRecords = (newRecords: AttendanceRecord[]) => {
     updateDataAndSync((prev) => {
-      const savedStudentIds = new Set(newRecords.map((r) => r.studentId));
+      const newKeySet = new Set(newRecords.map((r) => `${r.studentId}_${r.date}`));
       const remaining = prev.records.filter(
-        (r) => !(r.date === currentDate && savedStudentIds.has(r.studentId))
+        (r) => !newKeySet.has(`${r.studentId}_${r.date}`)
       );
       return {
         ...prev,
@@ -338,64 +360,80 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {activeTab === 'presensi' && (
-          <DailyAttendance
-            currentDate={currentDate}
-            onDateChange={setCurrentDate}
-            selectedScope={selectedScope}
-            onSelectScope={setSelectedScope}
-            classes={data.classes}
-            students={data.students}
-            records={data.records}
-            onSaveRecords={handleSaveRecords}
-            schoolProfile={data.schoolProfile}
-            onNavigateToStudents={() => setActiveTab('siswa')}
-          />
-        )}
+        {isInitialLoading ? (
+          <div className="py-24 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center animate-spin mb-4">
+              <RefreshCw className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">
+              Menghubungkan ke Database Cloud Presensi...
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Menyinkronkan data siswa & absensi real-time dari {data.schoolProfile.schoolName}
+            </p>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'presensi' && (
+              <DailyAttendance
+                currentDate={currentDate}
+                onDateChange={setCurrentDate}
+                selectedScope={selectedScope}
+                onSelectScope={setSelectedScope}
+                classes={data.classes}
+                students={data.students}
+                records={data.records}
+                onSaveRecords={handleSaveRecords}
+                schoolProfile={data.schoolProfile}
+                onNavigateToStudents={() => setActiveTab('siswa')}
+              />
+            )}
 
-        {activeTab === 'rekap' && (
-          <AttendanceSummary
-            currentDate={currentDate}
-            selectedScope={selectedScope}
-            onSelectScope={setSelectedScope}
-            classes={data.classes}
-            students={data.students}
-            records={data.records}
-            schoolProfile={data.schoolProfile}
-            onNavigateToExport={() => setActiveTab('ekspor')}
-          />
-        )}
+            {activeTab === 'rekap' && (
+              <AttendanceSummary
+                currentDate={currentDate}
+                selectedScope={selectedScope}
+                onSelectScope={setSelectedScope}
+                classes={data.classes}
+                students={data.students}
+                records={data.records}
+                schoolProfile={data.schoolProfile}
+                onNavigateToExport={() => setActiveTab('ekspor')}
+              />
+            )}
 
-        {activeTab === 'ekspor' && (
-          <ExcelExportPanel
-            currentDate={currentDate}
-            selectedScope={selectedScope}
-            onSelectScope={setSelectedScope}
-            classes={data.classes}
-            students={data.students}
-            records={data.records}
-            schoolProfile={data.schoolProfile}
-            onUpdateSchoolProfile={handleUpdateSchoolProfile}
-          />
-        )}
+            {activeTab === 'ekspor' && (
+              <ExcelExportPanel
+                currentDate={currentDate}
+                selectedScope={selectedScope}
+                onSelectScope={setSelectedScope}
+                classes={data.classes}
+                students={data.students}
+                records={data.records}
+                schoolProfile={data.schoolProfile}
+                onUpdateSchoolProfile={handleUpdateSchoolProfile}
+              />
+            )}
 
-        {activeTab === 'siswa' && (
-          <StudentManager
-            students={data.students}
-            classes={data.classes}
-            selectedClassId={selectedScope}
-            onSelectClassId={setSelectedScope}
-            onAddStudent={handleAddStudent}
-            onAddStudentsBatch={handleAddStudentsBatch}
-            onUpdateStudent={handleUpdateStudent}
-            onDeleteStudent={handleDeleteStudent}
-            onClearAllStudents={handleClearAllStudents}
-            onAddClass={handleAddClass}
-            onUpdateClass={handleUpdateClass}
-            onDeleteClass={handleDeleteClass}
-            onExportAllData={handleExportAllData}
-            onImportData={handleImportData}
-          />
+            {activeTab === 'siswa' && (
+              <StudentManager
+                students={data.students}
+                classes={data.classes}
+                selectedClassId={selectedScope}
+                onSelectClassId={setSelectedScope}
+                onAddStudent={handleAddStudent}
+                onAddStudentsBatch={handleAddStudentsBatch}
+                onUpdateStudent={handleUpdateStudent}
+                onDeleteStudent={handleDeleteStudent}
+                onClearAllStudents={handleClearAllStudents}
+                onAddClass={handleAddClass}
+                onUpdateClass={handleUpdateClass}
+                onDeleteClass={handleDeleteClass}
+                onExportAllData={handleExportAllData}
+                onImportData={handleImportData}
+              />
+            )}
+          </>
         )}
       </main>
 
@@ -412,6 +450,7 @@ export default function App() {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         roomId={roomId}
+        currentDate={currentDate}
         onChangeRoom={handleChangeRoom}
         syncStatus={syncStatus}
         lastSyncTime={lastSyncTime}
