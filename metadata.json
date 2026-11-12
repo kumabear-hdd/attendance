@@ -1,6 +1,6 @@
 {
-  "name": "SI-Hadir: Sistem Informasi & Rekap Absensi Siswa",
-  "description": "Aplikasi manajemen absensi siswa sekolah dengan pencatatan kehadiran harian, rekapitulasi berkala, dan ekspor laporan Excel (Harian, Mingguan, Bulanan, Semesteran).",
+  "name": "SI-Hadir: PKBM Mustaqbal Vocational School - Rekap Absensi Siswa",
+  "description": "Aplikasi manajemen absensi siswa PKBM Mustaqbal Vocational School dengan pencatatan kehadiran harian, rekapitulasi berkala, ekspor Excel, dan sinkronisasi multi-device.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1072,7 +1072,7 @@ export const ExcelExportPanel: React.FC<ExcelExportPanelProps> = ({
                     <tbody className="divide-y divide-slate-200">
                       {gradeStats.map((g) => (
                         <tr key={g.grade} className="hover:bg-slate-50">
-                          <td className="p-2.5 font-bold text-slate-800">Tingkat {g} (Semua Ruangan)</td>
+                          <td className="p-2.5 font-bold text-slate-800">Tingkat {g.grade} (Semua Ruangan)</td>
                           <td className="p-2.5 text-center font-mono">{g.total} siswa</td>
                           <td className="p-2.5 text-center font-mono text-emerald-700 font-bold">{g.hadir}</td>
                           <td className="p-2.5 text-center font-mono text-amber-700">{g.sakit}</td>

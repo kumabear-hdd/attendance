@@ -1,31 +1,31 @@
 import { AttendanceRecord, ClassRoom, SchoolProfile, Student } from '../types/attendance';
 
 export const INITIAL_SCHOOL_PROFILE: SchoolProfile = {
-  schoolName: 'Sekolah Islam Terpadu / Pesantren',
-  npsn: '20109988',
+  schoolName: 'PKBM Mustaqbal Vocational School',
+  npsn: '-',
   address: 'Jl. Pendidikan Karakter No. 10',
   academicYear: '2026/2027',
   semester: 'Ganjil',
-  // 4 Pengesahan Resmi:
-  principalName: 'Drs. H. Ahmad Fauzan, M.Pd.',
-  principalNip: '19750815 200501 1 003',
-  kesiswaanName: 'Ust. Muhammad Salman, S.Pd.',
-  kesiswaanNip: '19820412 201001 1 008',
-  walasIkhwanName: 'Ust. Abdullah Fatih, S.Pd.I',
-  walasIkhwanNip: '19880920 201502 1 004',
-  walasAkhwatName: 'Usth. Maryam Salsabila, S.Si.',
-  walasAkhwatNip: '19900315 201603 2 006',
+  // 4 Pengesahan Resmi Sesuai Standar Administrasi:
+  principalName: 'Imam Najmudin, S.kom',
+  principalNip: '144802020004',
+  kesiswaanName: 'Hanif Daffa Dzulfahmi',
+  kesiswaanNip: '144802020007',
+  walasIkhwanName: 'Fikri Ihsan Abdulloh',
+  walasIkhwanNip: '144802020005',
+  walasAkhwatName: 'Sahreny Novaida Purnama',
+  walasAkhwatNip: '144802020006',
   homeroomTeacherName: 'Tim Piket / Wali Kelas',
   homeroomTeacherNip: '-',
 };
 
-// 12 Ruangan: Tingkat X, XI, XII, masing-masing 2 ruangan Ikhwan & 2 ruangan Akhwat (tanpa mapel/jurusan seperti MIPA)
+// Ruangan Tingkat X, XI, XII (Ikhwan & Akhwat)
 export const INITIAL_CLASSES: ClassRoom[] = [
   // TINGKAT X
-  { id: 'c_x_ikhwan_1', name: 'X Ikhwan 1', grade: 'X', category: 'Ikhwan', homeroomTeacher: 'Ust. Muhammad Rizki' },
-  { id: 'c_x_ikhwan_2', name: 'X Ikhwan 2', grade: 'X', category: 'Ikhwan', homeroomTeacher: 'Ust. Fajar Ramadhan' },
-  { id: 'c_x_akhwat_1', name: 'X Akhwat 1', grade: 'X', category: 'Akhwat', homeroomTeacher: 'Usth. Sarah Khadijah' },
-  { id: 'c_x_akhwat_2', name: 'X Akhwat 2', grade: 'X', category: 'Akhwat', homeroomTeacher: 'Usth. Fatimah Az-Zahra' },
+  { id: 'c_x_ikhwan_1', name: 'X Ikhwan 1', grade: 'X', category: 'Ikhwan', homeroomTeacher: 'Fikri Ihsan Abdulloh' },
+  { id: 'c_x_ikhwan_2', name: 'X Ikhwan 2', grade: 'X', category: 'Ikhwan', homeroomTeacher: 'Fikri Ihsan Abdulloh' },
+  { id: 'c_x_akhwat_1', name: 'X Akhwat 1', grade: 'X', category: 'Akhwat', homeroomTeacher: 'Sahreny Novaida Purnama' },
+  { id: 'c_x_akhwat_2', name: 'X Akhwat 2', grade: 'X', category: 'Akhwat', homeroomTeacher: 'Sahreny Novaida Purnama' },
 
   // TINGKAT XI
   { id: 'c_xi_ikhwan_1', name: 'XI Ikhwan 1', grade: 'XI', category: 'Ikhwan', homeroomTeacher: 'Ust. Abdullah Fatih' },
@@ -40,11 +40,33 @@ export const INITIAL_CLASSES: ClassRoom[] = [
   { id: 'c_xii_akhwat_2', name: 'XII Akhwat 2', grade: 'XII', category: 'Akhwat', homeroomTeacher: 'Usth. Ruqayyah Wardani' },
 ];
 
-// Clean state: user starts with clean empty students and records
-export const INITIAL_STUDENTS: Student[] = [];
+// 17 Siswa Awal PKBM Mustaqbal Vocational School
+export const INITIAL_STUDENTS: Student[] = [
+  // X Ikhwan 1 (No 1 - 6)
+  { id: 's_1001', nis: '1001', nisn: '1001', name: 'Adam', gender: 'L', classId: 'c_x_ikhwan_1' },
+  { id: 's_1002', nis: '1002', nisn: '1002', name: 'Dzaky', gender: 'L', classId: 'c_x_ikhwan_1' },
+  { id: 's_1003', nis: '1003', nisn: '1003', name: 'Raffa', gender: 'L', classId: 'c_x_ikhwan_1' },
+  { id: 's_1004', nis: '1004', nisn: '1004', name: 'Hudzaifah', gender: 'L', classId: 'c_x_ikhwan_1' },
+  { id: 's_1005', nis: '1005', nisn: '1005', name: 'Faiz', gender: 'L', classId: 'c_x_ikhwan_1' },
+  { id: 's_1006', nis: '1006', nisn: '1006', name: 'Ardhani', gender: 'L', classId: 'c_x_ikhwan_1' },
+
+  // X Akhwat 1 (No 7 - 17)
+  { id: 's_1007', nis: '1007', nisn: '1007', name: 'Rachel', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1008', nis: '1008', nisn: '1008', name: 'Husna', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1009', nis: '1009', nisn: '1009', name: 'Tsaulah', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1010', nis: '1010', nisn: '1010', name: 'Salwa', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1011', nis: '1011', nisn: '1011', name: 'Adzkia', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1012', nis: '1012', nisn: '1012', name: 'Ifa', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1013', nis: '1013', nisn: '1013', name: 'Hilya', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1014', nis: '1014', nisn: '1014', name: 'Husna', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1015', nis: '1015', nisn: '1015', name: 'Qonita', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1016', nis: '1016', nisn: '1016', name: 'Yasmin', gender: 'P', classId: 'c_x_akhwat_1' },
+  { id: 's_1017', nis: '1017', nisn: '1017', name: 'Muthia', gender: 'P', classId: 'c_x_akhwat_1' },
+];
+
 export const INITIAL_RECORDS: AttendanceRecord[] = [];
 
-const STORAGE_KEY = 'si_hadir_sekolah_12ruangan_clean_v5';
+const STORAGE_KEY = 'si_hadir_mustaqbal_vocational_v1';
 
 export interface StorageData {
   students: Student[];
@@ -72,15 +94,15 @@ export function loadStoredData(): StorageData {
     console.error('Failed to parse stored attendance data:', err);
   }
 
-  // Fresh clean state
-  const cleanData: StorageData = {
+  // Fresh initial state with PKBM Mustaqbal Vocational School data and students
+  const initialData: StorageData = {
     students: INITIAL_STUDENTS,
     classes: INITIAL_CLASSES,
     records: INITIAL_RECORDS,
     schoolProfile: INITIAL_SCHOOL_PROFILE,
   };
-  saveStoredData(cleanData);
-  return cleanData;
+  saveStoredData(initialData);
+  return initialData;
 }
 
 export function resetToInitialData(): StorageData {

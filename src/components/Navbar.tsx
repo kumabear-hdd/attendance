@@ -1,10 +1,10 @@
-import React from 'react';
 import {
   CalendarDays,
   FileSpreadsheet,
   GraduationCap,
   LayoutDashboard,
   Settings,
+  Share2,
   Users,
 } from 'lucide-react';
 import { ClassRoom, SchoolProfile } from '../types/attendance';
@@ -19,6 +19,9 @@ interface NavbarProps {
   selectedScope: string;
   onSelectScope: (scope: string) => void;
   onOpenSettings: () => void;
+  onOpenShare: () => void;
+  syncStatus?: 'synced' | 'syncing' | 'offline';
+  serverVersion?: number;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -29,6 +32,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   selectedScope,
   onSelectScope,
   onOpenSettings,
+  onOpenShare,
+  syncStatus = 'synced',
+  serverVersion = 1,
 }) => {
   return (
     <header className="bg-slate-900 text-white shadow-lg sticky top-0 z-40 no-print">
@@ -52,6 +58,29 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded border border-indigo-800 font-semibold">
               Semester {schoolProfile.semester}
             </span>
+            <button
+              onClick={onOpenShare}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded-lg transition shadow-xs"
+              title="Bagikan tautan untuk edit bersamaan di HP/perangkat kedua"
+              aria-label="Bagikan Tautan Multi-Device"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Bagikan Tautan</span>
+              <span className="flex h-2 w-2 relative">
+                {syncStatus === 'synced' && (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                  </>
+                )}
+                {syncStatus === 'syncing' && (
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-300 animate-spin"></span>
+                )}
+                {syncStatus === 'offline' && (
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-400"></span>
+                )}
+              </span>
+            </button>
             <button
               onClick={onOpenSettings}
               className="flex items-center gap-1 text-slate-400 hover:text-white px-2 py-0.5 rounded hover:bg-slate-800 transition"
